@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГОС-Тренажёр · ЮУрГУ</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: var(--tg-theme-bg-color, #F5F4FF);
+    --surface: var(--tg-theme-secondary-bg-color, #ffffff);
+    --border: #E5E3FF;
+    --text: var(--tg-theme-text-color, #1F1A3D);
+    --muted: var(--tg-theme-hint-color, #6B7280);
+    --primary: var(--tg-theme-button-color, #4F46E5);
+    --primary-light: #EEF2FF;
+    --link: var(--tg-theme-link-color, #4F46E5);
+  }
+  /* Telegram Mini App overrides */
+  body {
+    background: var(--tg-theme-bg-color, #F5F4FF) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .btn-primary {
+    background: var(--tg-theme-button-color, #4F46E5) !important;
+    color: var(--tg-theme-button-text-color, #fff) !important;
+  }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  #app { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* ── typography ── */
+  h1 { font-size: 22px; font-weight: 800; }
+  h2 { font-size: 17px; font-weight: 700; }
+  p  { line-height: 1.6; }
+
+  /* ── cards ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .card + .card { margin-top: 12px; }
+
+  /* ── buttons ── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+         padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 700;
+         cursor: pointer; border: none; transition: opacity .15s, transform .1s; }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-secondary { background: var(--primary-light); color: var(--primary); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-danger { background: #FEE2E2; color: #DC2626; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-full { width: 100%; padding: 13px; font-size: 15px; }
+
+  /* ── badge ── */
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
+
+  /* ── form elements ── */
+  input[type=text], input[type=search], textarea, select {
+    width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 13px; font-family: inherit; outline: none; background: var(--surface);
+    transition: border-color .15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+  textarea { resize: vertical; }
+  label { font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 5px; }
+  .field { margin-bottom: 14px; }
+
+  /* ── progress ── */
+  .progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+
+  /* ── option button in test ── */
+  .opt-btn { width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+             border-radius: 12px; border: 2px solid var(--border); background: var(--surface);
+             cursor: pointer; text-align: left; transition: all .15s; margin-bottom: 8px; }
+  .opt-btn:hover { border-color: #A5B4FC; }
+  .opt-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+  .opt-letter { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 12px; font-weight: 800; flex-shrink: 0; transition: all .15s; color: var(--muted); }
+  .opt-btn.selected .opt-letter { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .opt-btn.multi .opt-letter { border-radius: 6px; }
+
+  /* ── nav map ── */
+  .q-map { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
+  .q-dot { width: 32px; height: 32px; border-radius: 7px; border: none; font-size: 11px; font-weight: 700;
+           cursor: pointer; transition: all .15s; }
+
+  /* ── review ── */
+  .opt-review { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px;
+                border-radius: 9px; border: 1px solid var(--border); margin-bottom: 5px; }
+  .opt-review.correct { background: #D1FAE5; border-color: #6EE7B7; }
+  .opt-review.wrong   { background: #FEE2E2; border-color: #FCA5A5; }
+
+  /* ── modal ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200;
+                   display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--surface); border-radius: 18px; padding: 24px; width: 100%;
+           max-width: 600px; max-height: 90vh; overflow-y: auto;
+           box-shadow: 0 24px 64px rgba(0,0,0,.2); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); line-height: 1; }
+
+  /* ── chip filters ── */
+  .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+          font-size: 12px; font-weight: 600; cursor: pointer; background: transparent;
+          color: var(--muted); transition: all .15s; }
+  .chip.active { color: #fff; border-color: transparent; }
+
+  /* ── utils ── */
+  .flex { display: flex; }
+  .flex-col { display: flex; flex-direction: column; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .wrap { flex-wrap: wrap; }
+  .mt-8  { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8  { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--muted); }
+  .bold { font-weight: 700; }
+  .hidden { display: none !important; }
+
+  /* ── hint box ── */
+  .hint { background: var(--primary-light); border: 1px solid #C7D2FE; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #3730A3; line-height: 1.7; margin-bottom: 14px; }
+  .hint code { background: rgba(0,0,0,.07); border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 11px; }
+
+  /* ── timer ── */
+  #timer { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; color: #059669; }
+  #timer.warn { color: #D97706; }
+  #timer.danger { color: #DC2626; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* ── disc grid ── */
+  .disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .disc-card { border-radius: 12px; padding: 14px 16px; border-left-width: 4px; border-left-style: solid; }
+
+  /* ── scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #C7D2FE; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+const DISCIPLINES = [
+  { id:'arch', label:'Архитектура предприятия',               color:'#4F46E5' },
+  { id:'bpm',  label:'Моделирование бизнес-процессов',        color:'#0891B2' },
+  { id:'is',   label:'Проектирование ИС',                     color:'#059669' },
+  { id:'re',   label:'Реинжиниринг БП и КИС',                 color:'#D97706' },
+  { id:'eb',   label:'Электронный бизнес',                    color:'#DC2626' },
+  { id:'inv',  label:'Инвестиции и инв. анализ',              color:'#7C3AED' },
+];
+const DISC = Object.fromEntries(DISCIPLINES.map(d=>[d.id,d]));
+
+// Exam quota: exactly how many questions per discipline (matches ЮУрГУ state exam)
+const EXAM_QUOTA = { arch:7, bpm:7, is:7, re:6, eb:7, inv:6 };  // total = 40
+
+function loadQ()  { try { return JSON.parse(localStorage.getItem('gos_questions')||'[]'); } catch{ return []; } }
+function saveQ(q) { localStorage.setItem('gos_questions', JSON.stringify(q)); }
+
+// ── Favorites ─────────────────────────────────────────────────────
+function loadFavs()  { try { return JSON.parse(localStorage.getItem('gos_favs')||'[]'); } catch { return []; } }
+function saveFavs(f) { localStorage.setItem('gos_favs', JSON.stringify(f)); }
+let favorites = loadFavs(); // set of question ids
+
+function isFav(id)    { return favorites.includes(id); }
+function toggleFav(id) {
+  if (isFav(id)) favorites = favorites.filter(x=>x!==id);
+  else favorites = [...favorites, id];
+  saveFavs(favorites);
+}
+
+let questions = loadQ();
+
+// ═══════════════════════════════════════════════════════════════════
+// PARSER
+// ═══════════════════════════════════════════════════════════════════
+function parseQuestions(text, defaultDisc) {
+  const blocks = text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const result = [];
+  for (const block of blocks) {
+    const lines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+    let qtext='', opts=[], answers=[], disc=defaultDisc;
+    for (const line of lines) {
+      if (/^вопрос\s*:/i.test(line))       { qtext = line.replace(/^вопрос\s*:\s*/i,''); }
+      else if (/^[A-Iа-и]\s*[).]/i.test(line)) {
+        const letter = line[0].toUpperCase().replace('А','A').replace('Б','B').replace('В','C').replace('Г','D').replace('Д','E').replace('Е','F').replace('Ж','G').replace('З','H').replace('И','I');
+        const txt = line.replace(/^[A-Dа-г]\s*[).]\s*/i,'');
+        opts.push({ letter, text: txt });
+      }
+      else if (/^ответ\s*:/i.test(line))    { answers = line.replace(/^ответ\s*:\s*/i,'').split(',').map(s=>s.trim().toUpperCase()); }
+      else if (/^дисциплина\s*:/i.test(line)){ disc = line.replace(/^дисциплина\s*:\s*/i,'').trim(); }
+      else if (!qtext && line.length>3)     { qtext = line; }
+    }
+    if (qtext && opts.length>=2 && answers.length) {
+      result.push({ id: uid(), discipline: disc, question: qtext, options: opts, answers, type: answers.length>1?'multi':'single' });
+    }
+  }
+  return result;
+}
+
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function shuffle(a) { const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; }
+
+// ═══════════════════════════════════════════════════════════════════
+// ROUTER  (screen state)
+// ═══════════════════════════════════════════════════════════════════
+let screen = 'home';
+let testPool = [], userAnswers = {}, testSettings = {};
+let timerInterval = null, secondsLeft = 3600;
+
+function go(s) { screen=s; render(); }
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function badge(label, color) {
+  return `<span class="badge" style="background:${color}18;color:${color};border:1px solid ${color}40">${label}</span>`;
+}
+function btn(label, cls, attrs='') {
+  return `<button class="btn ${cls}" ${attrs}>${label}</button>`;
+}
+function pct(n,d) { return d?Math.ceil(n/d*100):0; }
+function grade(p) {
+  if(p>=85) return {label:'Отлично',    color:'#059669'};
+  if(p>=75) return {label:'Хорошо',     color:'#0891B2'};
+  if(p>=60) return {label:'Удовл.',     color:'#D97706'};
+  return           {label:'Неудовл.',   color:'#DC2626'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════════════════
+
+// ── HOME ──────────────────────────────────────────────────────────
+function renderHome() {
+  const byD = Object.fromEntries(DISCIPLINES.map(d=>[d.id, questions.filter(q=>q.discipline===d.id).length]));
+  const total = questions.length;
+  return `
+    <div style="text-align:center;padding:28px 0 20px">
+      <h1 style="font-size:24px;margin-bottom:4px">🎓 Тренажёр ГОС-экзамена</h1>
+      <p class="text-muted text-sm">38.03.05 Бизнес-информатика · Бакалавриат ЮУрГУ</p>
+    </div>
+
+    <p class="text-xs text-muted mb-8" style="font-weight:700;letter-spacing:.5px">ТРЕНИРОВКА ПО ПРЕДМЕТУ — нажми карточку</p>
+    <div class="disc-grid">
+      ${DISCIPLINES.map(d=>{
+        const cnt = byD[d.id];
+        return `<div class="disc-card" onclick="${cnt>0?`quickStart('${d.id}')`:''}"
+          style="background:${d.color}0D;border-left-color:${d.color};cursor:${cnt>0?'pointer':'default'};transition:transform .15s"
+          onmouseover="if(${cnt>0}){this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px ${d.color}33'}"
+          onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <p style="font-size:11px;color:${d.color};margin-bottom:4px;line-height:1.4;font-weight:700">${d.label}</p>
+          <p style="font-size:26px;font-weight:900;color:${d.color};line-height:1">${cnt}</p>
+          <p style="font-size:11px;color:${d.color}99">${cnt>0?'вопросов ▶':'нет вопросов'}</p>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card" style="border-color:#C7D2FE;background:#F5F3FF">
+      <div class="flex items-center justify-between wrap gap-12">
+        <div>
+          <p class="bold" style="font-size:15px;margin-bottom:3px">Всего вопросов: ${total}</p>
+          <p class="text-xs text-muted">Тренировка: все вопросы предмета · Экзамен: 40 вопр., 60 мин.</p>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Сохранить базу в файл">💾</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-db-home').click()" title="Загрузить базу из файла">📂</button>
+          <input type="file" id="import-db-home" accept=".json" style="display:none" onchange="importDB(this)">
+          <button class="btn btn-secondary btn-sm" onclick="go('manage')">📋 Вопросы</button>
+          <button class="btn btn-primary" onclick="go('settings')" ${total<1?'disabled':''}>
+            ${total<1?'Нет вопросов':'Настроить тест ▶'}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    ${favorites.length>0?`
+    <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <p style="font-weight:700;font-size:14px;color:#92400E;margin:0 0 2px">★ Избранные вопросы</p>
+        <p style="font-size:12px;color:#B45309;margin:0">${favorites.length} вопрос(ов) отмечено звёздочкой</p>
+      </div>
+      <button class="btn btn-sm" style="background:#F59E0B;color:#fff;border:none" onclick="startFavorites()">Прорешать избранное ▶</button>
+    </div>`:''}
+
+    ${total===0?`
+      <div style="text-align:center;padding:48px 0;color:var(--muted)">
+        <p style="font-size:40px;margin-bottom:10px">📝</p>
+        <p>Добавьте вопросы, чтобы начать тренировку</p>
+        <button class="btn btn-primary mt-16" onclick="go('manage')">Перейти к вопросам</button>
+      </div>`:''}
+  `;
+}
+
+// ── MANAGE ────────────────────────────────────────────────────────
+let manageFilter = 'all', manageSearch = '';
+function renderManage() {
+  const filtered = questions.filter(q=>
+    (manageFilter==='all'||q.discipline===manageFilter) &&
+    (!manageSearch||q.question.toLowerCase().includes(manageSearch.toLowerCase()))
+  );
+  return `
+    <div class="flex items-center gap-8 mb-16 wrap">
+      <button class="btn btn-ghost btn-sm" onclick="go('home')">← Назад</button>
+      <h2 style="flex:1">Вопросы (${questions.length})</h2>
+      <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Сохранить базу вопросов в файл">💾 Экспорт</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-db-file').click()" title="Загрузить базу вопросов из файла">📂 Загрузить</button>
+      <input type="file" id="import-db-file" accept=".json" style="display:none" onchange="importDB(this)">
+      <button class="btn btn-secondary btn-sm" onclick="showImportModal()">⬆ Вопросы</button>
+      <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Добавить</button>
+    </div>
+
+    <div class="flex gap-8 mb-12 wrap">
+      <button class="chip ${manageFilter==='all'?'active':''}" style="${manageFilter==='all'?'background:#4F46E5':''}" onclick="setManageFilter('all')">Все</button>
+      ${DISCIPLINES.map(d=>{
+        const cnt = questions.filter(q=>q.discipline===d.id).length;
+        return `<div style="display:inline-flex;align-items:center;gap:2px;margin-bottom:4px">
+          <button class="chip ${manageFilter===d.id?'active':''}"
+            style="${manageFilter===d.id?`background:${d.color}`:'color:'+d.color}"
+            onclick="setManageFilter('${d.id}')">${d.label.split(' ').slice(0,2).join(' ')} (${cnt})</button>
+          ${cnt>0?`<button onclick="deleteDisc('${d.id}')" title="Удалить все вопросы: ${d.label}"
+            style="background:#FEE2E2;border:none;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;color:#DC2626;line-height:1">✕</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <input type="search" placeholder="🔍 Поиск по тексту вопроса..." class="mb-12"
+      value="${manageSearch.replace(/"/g,'&quot;')}"
+      oninput="manageSearch=this.value;renderManageList()">
+
+    <div id="manage-list"></div>
+  `;
+}
+function renderManageList() {
+  const filtered = questions.filter(q=>
+    (manageFilter==='all'||q.discipline===manageFilter) &&
+    (!manageSearch||q.question.toLowerCase().includes(manageSearch.toLowerCase()))
+  );
+  const el = document.getElementById('manage-list');
+  if (!el) return;
+  if (!filtered.length) { el.innerHTML=`<p style="text-align:center;color:var(--muted);padding:32px">Нет вопросов</p>`; return; }
+  el.innerHTML = filtered.map(q=>{
+    const d = DISC[q.discipline]||{label:q.discipline,color:'#6B7280'};
+    return `
+      <div class="card mb-8 flex gap-12 items-center">
+        <div style="flex:1;min-width:0">
+          <div class="flex gap-8 mb-8 wrap">
+            ${badge(d.label.split(' ').slice(0,2).join(' '),d.color)}
+            ${badge(q.type==='multi'?'Несколько':'Один',q.type==='multi'?'#D97706':'#059669')}
+          </div>
+          <div style="line-height:1.5;margin-bottom:4px;font-size:13px">${q.question.includes('[img:') ? q.question.replace(/\[img:[^\]]+\]/g, '<span style="font-size:11px;color:#9CA3AF">🖼 [картинка]</span>') : q.question}</div>
+          <p class="text-xs text-muted">Ответ: ${q.answers.join(', ')} · ${q.options.length} вариантов${q.options.some(o=>o.text.startsWith('[img:'))?' · 🖼 есть картинки':''}</p>
+        </div>
+        <div class="flex-col gap-8" style="flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="showEditModal('${q.id}')">✏️</button>
+          <button onclick="toggleFav('${q.id}');renderManageList()" style="background:${isFav(q.id)?'#FEF3C7':'#F3F4F6'};border:none;border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer">${isFav(q.id)?'★':'☆'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteQ('${q.id}')">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+function setManageFilter(f) { manageFilter=f; render(); setTimeout(()=>renderManageList(),0); }
+function deleteDisc(discId) {
+  const disc = DISC[discId];
+  const cnt = questions.filter(q=>q.discipline===discId).length;
+  if (!confirm(`Удалить все ${cnt} вопросов по дисциплине «${disc?.label}»?\nЭто действие нельзя отменить.`)) return;
+  questions = questions.filter(q=>q.discipline!==discId);
+  saveQ(questions);
+  if (manageFilter===discId) manageFilter='all';
+  render();
+  setTimeout(()=>renderManageList(),0);
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────
+let settingsDiscs = DISCIPLINES.map(d=>d.id), settingsCount = 40, settingsTimed = true, settingsMode = 'practice';
+function renderSettings() {
+  const available = questions.filter(q=>settingsDiscs.includes(q.discipline)).length;
+  const maxCount = settingsMode==='exam' ? Math.min(available,40) : available;
+  if (settingsCount > maxCount || settingsCount < 1) settingsCount = maxCount;
+  return `
+    <div class="flex items-center gap-8 mb-16">
+      <button class="btn btn-ghost btn-sm" onclick="go('home')">← Назад</button>
+      <h2>Настройки теста</h2>
+    </div>
+
+    <div class="card mb-12">
+      <p class="bold mb-10" style="font-size:14px">Режим</p>
+      <div class="flex gap-8">
+        <label style="flex:1;cursor:pointer">
+          <input type="radio" name="smode" value="practice" ${settingsMode==='practice'?'checked':''} onchange="settingsMode='practice';render()" style="display:none">
+          <div style="border:2px solid ${settingsMode==='practice'?'var(--primary)':'var(--border)'};border-radius:10px;padding:12px;background:${settingsMode==='practice'?'var(--primary-light)':'transparent'};transition:all .15s">
+            <p style="font-size:13px;font-weight:700;color:${settingsMode==='practice'?'var(--primary)':'var(--text)'}">📚 Тренировка</p>
+            <p class="text-xs text-muted">Все вопросы, без ограничений</p>
+          </div>
+        </label>
+        <label style="flex:1;cursor:pointer">
+          <input type="radio" name="smode" value="exam" ${settingsMode==='exam'?'checked':''} onchange="settingsMode='exam';render()" style="display:none">
+          <div style="border:2px solid ${settingsMode==='exam'?'var(--primary)':'var(--border)'};border-radius:10px;padding:12px;background:${settingsMode==='exam'?'var(--primary-light)':'transparent'};transition:all .15s">
+            <p style="font-size:13px;font-weight:700;color:${settingsMode==='exam'?'var(--primary)':'var(--text)'}">🎓 Экзамен</p>
+            <p class="text-xs text-muted">40 вопросов, таймер 60 мин</p>
+          </div>
+        </label>
+      </div>
+      ${settingsMode==='exam'?`
+      <div style="margin-top:12px;background:#F9FAFB;border-radius:8px;padding:10px 12px">
+        <p class="text-xs bold text-muted mb-8">Состав экзамена (регламент ЮУрГУ):</p>
+        ${DISCIPLINES.map(d=>{
+          const quota = EXAM_QUOTA[d.id]||0;
+          const have = questions.filter(q=>q.discipline===d.id).length;
+          const ok = have>=quota;
+          return '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:'+(ok?'#374151':'#DC2626')+'">'+d.label+'</span><span style="font-weight:700;color:'+(ok?'#059669':'#DC2626')+'">'+Math.min(have,quota)+'/'+quota+(ok?' ✓':' ⚠️')+'</span></div>';
+        }).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid #E5E7EB;margin-top:6px;padding-top:6px;font-weight:700"><span>Итого</span><span style="color:var(--primary)">${DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0)} / 40</span></div>
+      </div>`:''}
+    </div>
+
+    <div class="card mb-12">
+      <p class="bold mb-12" style="font-size:14px">Дисциплины</p>
+      ${DISCIPLINES.map(d=>{
+        const cnt = questions.filter(q=>q.discipline===d.id).length;
+        return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px">
+          <input type="checkbox" ${settingsDiscs.includes(d.id)?'checked':''}
+            onchange="toggleSettingsDisc('${d.id}')"
+            style="width:16px;height:16px;accent-color:${d.color}">
+          <span style="flex:1;font-size:13px">${d.label}</span>
+          ${badge(cnt,d.color)}
+        </label>`;
+      }).join('')}
+    </div>
+
+    <div class="card mb-12">
+      <p class="bold mb-8" style="font-size:14px">
+        Количество вопросов: <span style="color:var(--primary)">${settingsCount}</span>
+        ${settingsMode==='exam'?'<span class="text-xs text-muted"> (макс. 40)</span>':''}
+      </p>
+      <input type="range" min="1" max="${maxCount||1}" value="${Math.min(settingsCount,maxCount||1)}"
+        oninput="settingsCount=+this.value;render()"
+        style="width:100%;accent-color:var(--primary)">
+      <p class="text-xs text-muted mt-8">Доступно: ${available} вопросов</p>
+    </div>
+
+    ${settingsMode==='exam'?`
+    <div class="card mb-16">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" ${settingsTimed?'checked':''}
+          onchange="settingsTimed=this.checked"
+          style="width:16px;height:16px;accent-color:var(--primary)">
+        <div>
+          <p style="font-size:13px;font-weight:700">⏱ Таймер 60 минут</p>
+          <p class="text-xs text-muted">Как на реальном экзамене ЮУрГУ</p>
+        </div>
+      </label>
+    </div>`:'<div class="mb-16"></div>'}
+
+    <button class="btn btn-primary btn-full" onclick="startTest()" ${(settingsMode==='exam' ? DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0) : (available||0)) < 1 ? 'disabled':''}>
+      ${settingsMode==='exam'
+        ? `🎓 Начать экзамен (${DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0)} вопросов) ▶`
+        : `📚 Начать (${Math.min(settingsCount,maxCount||0)} вопросов) ▶`}
+    </button>
+  `;
+}
+function toggleSettingsDisc(id) {
+  settingsDiscs = settingsDiscs.includes(id) ? settingsDiscs.filter(x=>x!==id) : [...settingsDiscs,id];
+  render();
+}
+// Quick-start single discipline (all questions, no timer)
+function startFavorites() {
+  const favQs = questions.filter(q => favorites.includes(q.id));
+  if (!favQs.length) { alert('Нет избранных вопросов'); return; }
+  testPool = shuffle(favQs);
+  userAnswers = {};
+  testIdx = 0;
+  testFlagged = new Set();
+  testSettings = { timed: false, disciplines: [], count: favQs.length, mode: 'favorites' };
+  secondsLeft = 0;
+  screen = 'test';
+  render();
+}
+
+function quickStart(discId) {
+  const avail = questions.filter(q=>q.discipline===discId);
+  testPool = shuffle(avail);
+  userAnswers = {};
+  testIdx = 0;
+  testFlagged = new Set();
+  testSettings = { timed: false, disciplines: [discId], count: avail.length, mode: 'practice' };
+  secondsLeft = 0;
+  screen = 'test';
+  render();
+}
+
+// ── TEST ──────────────────────────────────────────────────────────
+let testIdx = 0, testFlagged = new Set();
+function renderTest() {
+  const q = testPool[testIdx];
+  const sel = userAnswers[testIdx]||[];
+  const d = DISC[q.discipline]||{label:q.discipline,color:'#6B7280'};
+  const answered = Object.keys(userAnswers).length;
+  const mm = String(Math.floor(secondsLeft/60)).padStart(2,'0');
+  const ss = String(secondsLeft%60).padStart(2,'0');
+  const timerClass = secondsLeft<300?'danger':secondsLeft<600?'warn':'';
+  return `
+    <div class="flex items-center justify-between mb-12 wrap gap-8">
+      <div class="flex gap-8 items-center">
+        <span class="bold" style="font-size:14px">Вопрос ${testIdx+1} / ${testPool.length}</span>
+        <span class="text-xs text-muted">Отвечено: ${answered}</span>
+      </div>
+      <div class="flex gap-8 items-center">
+        ${testSettings.timed?`<span id="timer" class="${timerClass}">⏱ ${mm}:${ss}</span>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="abortTest()">Прервать</button>
+        <button class="btn btn-primary btn-sm" onclick="finishTest()">Завершить ✓</button>
+      </div>
+    </div>
+
+    <div class="progress-bar mb-16">
+      <div class="progress-fill" style="width:${pct(answered,testPool.length)}%;background:var(--primary)"></div>
+    </div>
+
+    <div class="card mb-12">
+      <div class="flex gap-8 mb-12 wrap" style="align-items:center">
+        ${badge(d.label,d.color)}
+        ${badge(q.type==='multi'?'Несколько правильных':'Один правильный', q.type==='multi'?'#D97706':'#059669')}
+        ${testFlagged.has(testIdx)?badge('🚩 Отмечен','#DC2626'):''}
+        ${isFav(q.id)?badge('★ Избранное','#D97706'):''}
+      </div>
+      ${(()=>{
+          const parts = q.question.split(/(\[img:[^\]]+\])/);
+          return parts.map(part => {
+            if(part.startsWith('[img:')) return `<img src="${part.slice(5,-1)}" style="max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;object-fit:contain;display:block">`;
+            return part ? `<p style="font-size:15px;font-weight:600;line-height:1.6">${part}</p>` : '';
+          }).join('');
+        })()}
+    </div>
+
+    <div id="options">
+      ${q.options.map(opt=>{
+        const isSel = sel.includes(opt.letter);
+        const isImg = opt.text && opt.text.startsWith('[img:');
+        const imgSrc = isImg ? opt.text.slice(5, -1) : null;
+        return `<button class="opt-btn ${isSel?'selected':''} ${q.type==='multi'?'multi':''}"
+          onclick="toggleAnswer('${opt.letter}')">
+          <span class="opt-letter">${opt.letter}</span>
+          ${isImg
+            ? `<img src="${imgSrc}" style="max-width:160px;max-height:120px;border-radius:8px;object-fit:contain">`
+            : `<span style="font-size:14px;line-height:1.5;color:#374151">${opt.text}</span>`}
+        </button>`;
+      }).join('')}
+    </div>
+
+    <div class="flex justify-between items-center mt-16">
+      <button class="btn btn-ghost" onclick="testIdx=Math.max(0,testIdx-1);rerenderOptions()" ${testIdx===0?'disabled':''}>← Назад</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleFlag()">
+        ${testFlagged.has(testIdx)?'🚩 Снять флаг':'🚩 Отметить'}
+      </button>
+      <button onclick="toggleFav(testPool[testIdx].id);rerenderOptions()"
+        style="background:${isFav(testPool[testIdx].id)?'#FEF3C7':'#F3F4F6'};border:none;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;color:${isFav(testPool[testIdx].id)?'#92400E':'#6B7280'}">
+        ${isFav(testPool[testIdx].id)?'★ Избранное':'☆ Избранное'}
+      </button>
+      ${testIdx<testPool.length-1
+        ?`<button class="btn btn-primary" onclick="testIdx++;rerenderOptions()">Далее →</button>`
+        :`<button class="btn btn-primary" onclick="finishTest()">Завершить ✓</button>`}
+    </div>
+
+    <div class="card mt-16">
+      <p class="text-xs bold text-muted mb-8">Навигация</p>
+      <div class="q-map">
+        ${testPool.map((_,i)=>{
+          const isAns = userAnswers[i]?.length>0;
+          const isFl  = testFlagged.has(i);
+          const isCur = i===testIdx;
+          let bg = isCur?'var(--primary)':isFl?'#FEE2E2':isAns?'#D1FAE5':'#E5E7EB';
+          let cl = isCur?'#fff':isFl?'#DC2626':isAns?'#065F46':'var(--muted)';
+          return `<button class="q-dot" style="background:${bg};color:${cl}"
+            onclick="testIdx=${i};rerenderOptions()">${i+1}</button>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+function rerenderOptions() {
+  const el = document.getElementById('app');
+  if (!el) return;
+  el.innerHTML = renderTest();
+  startTimerTick();
+}
+function toggleAnswer(letter) {
+  const q = testPool[testIdx];
+  const cur = userAnswers[testIdx]||[];
+  if (q.type==='single') { userAnswers[testIdx]=[letter]; }
+  else { userAnswers[testIdx] = cur.includes(letter)?cur.filter(x=>x!==letter):[...cur,letter]; }
+  rerenderOptions();
+}
+function toggleFlag() { testFlagged.has(testIdx)?testFlagged.delete(testIdx):testFlagged.add(testIdx); rerenderOptions(); }
+
+// ── RESULTS ───────────────────────────────────────────────────────
+function renderResults() {
+  let correct=0;
+  testPool.forEach((q,i)=>{
+    const ua=(userAnswers[i]||[]).slice().sort().join(',');
+    const ca=q.answers.slice().sort().join(',');
+    if(ua===ca) correct++;
+  });
+  const p = pct(correct,testPool.length);
+  const g = grade(p);
+  const byDisc = DISCIPLINES.map(d=>{
+    const dqs = testPool.map((q,i)=>({q,i})).filter(({q})=>q.discipline===d.id);
+    if(!dqs.length) return null;
+    let dc=0; dqs.forEach(({q,i})=>{ if((userAnswers[i]||[]).slice().sort().join(',')===q.answers.slice().sort().join(',')) dc++; });
+    return {d,total:dqs.length,correct:dc};
+  }).filter(Boolean);
+
+  return `
+    <div style="text-align:center;padding:24px 0 16px">
+      <p style="font-size:52px;font-weight:900;color:${g.color};line-height:1">${p}%</p>
+      <p style="font-size:22px;font-weight:800;color:${g.color};margin:4px 0">${g.label}</p>
+      <p class="text-muted text-sm">Правильных: ${correct} из ${testPool.length}</p>
+    </div>
+
+    <div class="card mb-12">
+      <p class="bold mb-12" style="font-size:14px">Результат по дисциплинам</p>
+      ${byDisc.map(({d,total,correct:c})=>`
+        <div style="margin-bottom:12px">
+          <div class="flex justify-between text-sm mb-8">
+            <span>${d.label}</span>
+            <span style="font-weight:700;color:${d.color}">${c}/${total} (${Math.round(c/total*100)}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct(c,total)}%;background:${d.color}"></div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="hint">
+      <b>Шкала ЮУрГУ:</b> Отлично: 85–100% · Хорошо: 75–84% · Удовл.: 60–74% · Неудовл.: 0–59%
+    </div>
+
+    <div class="flex gap-8">
+      <button class="btn btn-secondary" style="flex:1" onclick="go('review')">Разбор ошибок</button>
+      <button class="btn btn-primary" style="flex:1" onclick="go('home')">На главную</button>
+    </div>
+  `;
+}
+
+// ── REVIEW ────────────────────────────────────────────────────────
+let reviewOnlyWrong = true;
+function renderReview() {
+  const items = testPool.map((q,i)=>{
+    const ua=(userAnswers[i]||[]).slice().sort().join(',');
+    const ca=q.answers.slice().sort().join(',');
+    return {q,i,ok:ua===ca,ua:userAnswers[i]||[]};
+  }).filter(x=>!reviewOnlyWrong||!x.ok);
+
+  return `
+    <div class="flex items-center gap-8 mb-16 wrap">
+      <button class="btn btn-ghost btn-sm" onclick="go('results')">← Назад</button>
+      <h2 style="flex:1">Разбор ответов</h2>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" ${reviewOnlyWrong?'checked':''} onchange="reviewOnlyWrong=this.checked;render()">
+        Только ошибки
+      </label>
+    </div>
+
+    ${!items.length?`<p style="text-align:center;color:#059669;padding:40px;font-size:16px">🎉 Нет ошибок!</p>`:''}
+
+    ${items.map(({q,i,ok,ua})=>{
+      const d=DISC[q.discipline]||{label:q.discipline,color:'#6B7280'};
+      return `
+        <div class="card mb-12" style="border-color:${ok?'#A7F3D0':'#FECACA'}">
+          <div class="flex gap-8 mb-10 wrap">
+            <span style="font-size:12px;font-weight:800;color:${ok?'#059669':'#DC2626'}">${ok?'✓ Верно':'✗ Неверно'}</span>
+            ${badge(d.label,d.color)}
+          </div>
+          <p style="font-size:14px;font-weight:600;line-height:1.5;margin-bottom:12px">${i+1}. ${q.question}</p>
+          ${q.options.map(opt=>{
+            const isC = q.answers.includes(opt.letter);
+            const isSel = ua.includes(opt.letter);
+            const cls = isC?'correct':isSel&&!isC?'wrong':'';
+            return `<div class="opt-review ${cls}">
+              <span style="font-weight:800;font-size:12px;flex-shrink:0;color:${isC?'#065F46':isSel?'#991B1B':'var(--muted)'}">${opt.letter})</span>
+              <span style="font-size:13px;line-height:1.5;flex:1;color:${isC?'#065F46':isSel&&!isC?'#991B1B':'#374151'}">${opt.text}</span>
+              ${isC?'<span style="font-size:11px;color:#059669;font-weight:800;flex-shrink:0">✓</span>':''}
+              ${isSel&&!isC?'<span style="font-size:11px;color:#DC2626;font-weight:800;flex-shrink:0">✗</span>':''}
+            </div>`;
+          }).join('')}
+        </div>`;
+    }).join('')}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════════════
+function startTimerTick() {
+  if (!testSettings.timed) return;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if (secondsLeft<=0) { clearInterval(timerInterval); finishTest(); return; }
+    secondsLeft--;
+    const el = document.getElementById('timer');
+    if (!el) { clearInterval(timerInterval); return; }
+    const mm=String(Math.floor(secondsLeft/60)).padStart(2,'0');
+    const ss=String(secondsLeft%60).padStart(2,'0');
+    el.textContent = `⏱ ${mm}:${ss}`;
+    el.className = secondsLeft<300?'danger':secondsLeft<600?'warn':'';
+  },1000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════════
+function deleteQ(id) {
+  if (!confirm('Удалить вопрос?')) return;
+  questions = questions.filter(q=>q.id!==id);
+  saveQ(questions);
+  render();
+  setTimeout(()=>renderManageList(),0);
+}
+function startTest() {
+  let pool;
+  const isTimed = settingsMode==='exam' && settingsTimed;
+  if (settingsMode==='exam') {
+    // Build pool with exact per-discipline quotas, then shuffle the whole thing
+    pool = [];
+    DISCIPLINES.forEach(d => {
+      const quota = EXAM_QUOTA[d.id] || 0;
+      const disc_qs = shuffle(questions.filter(q=>q.discipline===d.id));
+      pool = pool.concat(disc_qs.slice(0, quota));
+    });
+    // No final shuffle — questions stay in discipline order
+  } else {
+    const avail = questions.filter(q=>settingsDiscs.includes(q.discipline));
+    pool = shuffle(avail).slice(0, Math.min(settingsCount, avail.length));
+  }
+  const cnt = pool.length;
+  testPool = pool;
+  userAnswers = {};
+  testIdx = 0;
+  testFlagged = new Set();
+  testSettings = { timed: isTimed, disciplines: settingsDiscs, count: cnt, mode: settingsMode };
+  secondsLeft = 3600;
+  screen = 'test';
+  render();
+  if (isTimed) startTimerTick();
+}
+function abortTest() {
+  if (!confirm('Прервать тест?')) return;
+  clearInterval(timerInterval);
+  go('home');
+}
+function finishTest() {
+  clearInterval(timerInterval);
+  go('results');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════════
+
+// IMPORT MODAL
+function showImportModal() {
+  document.body.insertAdjacentHTML('beforeend',`
+    <div class="modal-overlay" id="import-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Импорт вопросов</h2>
+          <button class="modal-close" onclick="closeModal('import-modal')">✕</button>
+        </div>
+        <div class="hint">
+          <b>Формат — блоки, разделённые пустой строкой:</b><br>
+          <code>Вопрос: Текст вопроса</code><br>
+          <code>A) Вариант текстом</code><br>
+          <code>B) [img:data:image/png;base64,...]</code> &nbsp;← картинка<br>
+          <code>Ответ: A</code> &nbsp;(или <code>Ответ: A,C</code> для нескольких)<br>
+          <code>Дисциплина: arch</code> &nbsp;(необязательно)<br><br>
+          <b>Коды дисциплин:</b> arch · bpm · is · re · eb · inv<br>
+          <b>Картинки:</b> в опции пиши <code>[img:URL]</code> или вставляй через редактор
+        </div>
+        <div class="field">
+          <label>Дисциплина по умолчанию</label>
+          <select id="import-disc">
+            ${DISCIPLINES.map(d=>`<option value="${d.id}">${d.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Вставьте вопросы</label>
+          <textarea id="import-text" rows="10" placeholder="Вопрос: ...&#10;A) ...&#10;B) ...&#10;Ответ: A"></textarea>
+        </div>
+        <div id="import-preview"></div>
+        <div class="flex gap-8 justify-between mt-16">
+          <button class="btn btn-ghost" onclick="closeModal('import-modal')">Отмена</button>
+          <div class="flex gap-8">
+            <button class="btn btn-secondary" onclick="previewImport()">👁 Предпросмотр</button>
+            <button class="btn btn-primary" id="import-save-btn" disabled onclick="saveImport()">Добавить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+let importParsed = [];
+function previewImport() {
+  const text = document.getElementById('import-text').value;
+  const disc = document.getElementById('import-disc').value;
+  importParsed = parseQuestions(text, disc);
+  const prev = document.getElementById('import-preview');
+  const btn = document.getElementById('import-save-btn');
+  if (!importParsed.length) {
+    prev.innerHTML = `<p style="color:#DC2626;font-size:12px;margin-top:8px">Не удалось распознать вопросы. Проверьте формат.</p>`;
+    btn.disabled = true;
+  } else {
+    prev.innerHTML = `<div style="background:#D1FAE5;border:1px solid #6EE7B7;border-radius:8px;padding:10px;margin-top:8px;font-size:12px;color:#065F46">
+      ✓ Распознано: <b>${importParsed.length}</b> вопрос(ов)<br>Первый: ${importParsed[0].question}
+    </div>`;
+    btn.disabled = false;
+    btn.textContent = `Добавить ${importParsed.length} вопр.`;
+  }
+}
+function saveImport() {
+  questions = [...questions, ...importParsed];
+  saveQ(questions);
+  closeModal('import-modal');
+  render();
+  setTimeout(()=>renderManageList(),0);
+}
+
+// ADD / EDIT MODAL
+let editingId = null;
+function showAddModal() { editingId=null; openEditModal({discipline:'arch',question:'',options:[{letter:'A',text:''},{letter:'B',text:''},{letter:'C',text:''},{letter:'D',text:''}],answers:[],type:'single'}); }
+function showEditModal(id) { editingId=id; const q=questions.find(q=>q.id===id); openEditModal(q); }
+
+function openEditModal(q) {
+  const opts = ['A','B','C','D','E','F','G','H','I'].map((l,i)=>q.options[i]||{letter:l,text:''});
+  document.body.insertAdjacentHTML('beforeend',`
+    <div class="modal-overlay" id="add-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>${editingId?'Редактировать':'Добавить'} вопрос</h2>
+          <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+        </div>
+        <div class="field">
+          <label>Дисциплина</label>
+          <select id="add-disc">
+            ${DISCIPLINES.map(d=>`<option value="${d.id}" ${q.discipline===d.id?'selected':''}>${d.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Текст вопроса</label>
+          <div style="position:relative">
+          <textarea id="add-q" rows="3" placeholder="Введите вопрос...">${q.question}</textarea>
+          <label title="Вставить картинку в вопрос" style="position:absolute;bottom:6px;right:8px;cursor:pointer;font-size:16px;opacity:.6">
+            🖼<input type="file" accept="image/*" style="display:none" onchange="uploadQuestionImg(this)">
+          </label>
+        </div>
+        </div>
+        <div class="field">
+          <label>Тип ответа</label>
+          <div class="flex gap-12">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+              <input type="radio" name="add-type" value="single" ${q.type==='single'?'checked':''} onchange="updateAddLetters()"> Один правильный
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+              <input type="radio" name="add-type" value="multi" ${q.type==='multi'?'checked':''} onchange="updateAddLetters()"> Несколько правильных
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Варианты ответов (нажми на букву чтобы отметить правильный)</label>
+          <div id="add-opts">
+            ${opts.map((o,i)=>{
+              const letter=['A','B','C','D','E','F','G','H','I'][i];
+              const isSel = q.answers.includes(letter);
+              return `<div class="flex items-center gap-8 mb-8">
+                <button id="add-letter-${letter}" onclick="toggleAddAnswer('${letter}')"
+                  style="width:32px;height:32px;border-radius:${q.type==='multi'?'8px':'50%'};border:2px solid ${isSel?'var(--primary)':'#D1D5DB'};background:${isSel?'var(--primary)':'transparent'};color:${isSel?'#fff':'var(--muted)'};font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0;transition:all .15s">
+                  ${letter}
+                </button>
+                <div style="flex:1;display:flex;gap:6px;align-items:center">
+                <input type="text" id="add-opt-${letter}" value="${o.text.startsWith('[img:')?'':o.text.replace(/"/g,'&quot;')}" placeholder="Вариант ${letter}" style="flex:1">
+                ${o.text.startsWith('[img:') ? `<img src="${o.text.slice(5,-1)}" style="height:40px;border-radius:4px">` : ''}
+                <label title="Загрузить картинку" style="cursor:pointer;flex-shrink:0;font-size:18px">🖼<input type="file" accept="image/*" style="display:none" onchange="uploadOptImg(this,'${letter}')"></label>
+              </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="flex gap-8 justify-between mt-16">
+          <button class="btn btn-ghost" onclick="closeModal('add-modal')">Отмена</button>
+          <button class="btn btn-primary" onclick="saveQuestion()">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  `);
+  addAnswers = [...q.answers];
+}
+let addAnswers = [];
+function toggleAddAnswer(letter) {
+  const type = document.querySelector('input[name=add-type]:checked')?.value||'single';
+  if(type==='single') {
+    addAnswers=[letter];
+    ['A','B','C','D','E','F','G','H','I'].forEach(l=>{
+      const b=document.getElementById('add-letter-'+l); if(!b) return;
+      const s=addAnswers.includes(l);
+      b.style.background=s?'var(--primary)':'transparent';
+      b.style.borderColor=s?'var(--primary)':'#D1D5DB';
+      b.style.color=s?'#fff':'var(--muted)';
+    });
+  } else {
+    if(addAnswers.includes(letter)) addAnswers=addAnswers.filter(x=>x!==letter);
+    else addAnswers.push(letter);
+    const b=document.getElementById('add-letter-'+letter);
+    const s=addAnswers.includes(letter);
+    b.style.background=s?'var(--primary)':'transparent';
+    b.style.borderColor=s?'var(--primary)':'#D1D5DB';
+    b.style.color=s?'#fff':'var(--muted)';
+  }
+}
+function updateAddLetters() {
+  const type = document.querySelector('input[name=add-type]:checked')?.value||'single';
+  ['A','B','C','D','E','F','G','H','I'].forEach(l=>{
+    const b=document.getElementById('add-letter-'+l); if(!b) return;
+    b.style.borderRadius = type==='multi'?'8px':'50%';
+  });
+  if(type==='single'&&addAnswers.length>1) { addAnswers=[addAnswers[0]]; updateAddLetterStyles(); }
+}
+function updateAddLetterStyles(){
+  ['A','B','C','D','E','F','G','H','I'].forEach(l=>{
+    const b=document.getElementById('add-letter-'+l); if(!b) return;
+    const s=addAnswers.includes(l);
+    b.style.background=s?'var(--primary)':'transparent';
+    b.style.borderColor=s?'var(--primary)':'#D1D5DB';
+    b.style.color=s?'#fff':'var(--muted)';
+  });
+}
+function uploadQuestionImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const ta = document.getElementById('add-q');
+    if (!ta) return;
+    const cur = ta.value.trim();
+    ta.value = cur ? cur + ' [img:' + dataUrl + ']' : '[img:' + dataUrl + ']';
+    // Show preview
+    let prev = document.getElementById('q-img-preview');
+    if (!prev) { prev = document.createElement('img'); prev.id = 'q-img-preview'; prev.style.cssText = 'max-width:100%;max-height:120px;border-radius:6px;margin-top:4px;display:block'; ta.parentNode.appendChild(prev); }
+    prev.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadOptImg(input, letter) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const textInput = document.getElementById('add-opt-' + letter);
+    if (textInput) {
+      textInput.value = '';
+      textInput.placeholder = '📷 Картинка загружена';
+      textInput.dataset.imgSrc = dataUrl;
+      // Show preview
+      let preview = document.getElementById('img-preview-' + letter);
+      if (!preview) {
+        preview = document.createElement('img');
+        preview.id = 'img-preview-' + letter;
+        preview.style.cssText = 'height:50px;border-radius:6px;margin-top:4px;display:block';
+        textInput.parentNode.appendChild(preview);
+      }
+      preview.src = dataUrl;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveQuestion() {
+  const qtext = document.getElementById('add-q')?.value?.trim();
+  const disc  = document.getElementById('add-disc')?.value;
+  const type  = document.querySelector('input[name=add-type]:checked')?.value||'single';
+  const opts  = ['A','B','C','D','E','F','G','H','I'].map(l=>{
+    const el = document.getElementById('add-opt-'+l);
+    if (!el) return null;
+    const imgSrc = el.dataset.imgSrc;
+    const text = imgSrc ? `[img:${imgSrc}]` : el.value.trim();
+    return text ? { letter:l, text } : null;
+  }).filter(Boolean);
+  if(!qtext||opts.length<2||!addAnswers.length) { alert('Заполните вопрос, минимум 2 варианта и отметьте правильный ответ.'); return; }
+  const q = { id: editingId||uid(), discipline:disc, question:qtext, options:opts, answers:addAnswers, type };
+  if(editingId) questions=questions.map(x=>x.id===editingId?q:x);
+  else questions=[...questions,q];
+  saveQ(questions);
+  closeModal('add-modal');
+  render();
+  setTimeout(()=>renderManageList(),0);
+}
+function closeModal(id) { document.getElementById(id)?.remove(); }
+
+// ═══════════════════════════════════════════════════════════════════
+// EXPORT / IMPORT DB
+// ═══════════════════════════════════════════════════════════════════
+function exportDB() {
+  if (!questions.length) { alert('Нет вопросов для сохранения.'); return; }
+  const data = JSON.stringify({ version: 1, exported: new Date().toISOString(), questions }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `gos_questions_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importDB(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const qs = Array.isArray(data) ? data : data.questions;
+      if (!Array.isArray(qs) || !qs.length) throw new Error('Пустой файл');
+      const valid = qs.filter(q => q.id && q.question && q.options && q.answers);
+      if (!valid.length) throw new Error('Не найдено корректных вопросов');
+
+      // Detect disciplines in the imported file
+      const importedDiscs = [...new Set(valid.map(q => q.discipline))];
+      const discNames = importedDiscs.map(d => DISC[d]?.label || d).join(', ');
+
+      // Ask user what to do
+      const choice = importedDiscs.length > 0 && questions.length > 0
+        ? confirm(
+            `Найдено ${valid.length} вопросов (${discNames}).\n\n` +
+            `ОК — заменить вопросы этих дисциплин (безопасно, без дублей)\n` +
+            `Отмена — добавить к существующим`
+          )
+        : false;
+
+      let merged;
+      if (choice) {
+        // Replace only the disciplines present in the new file, keep others
+        const keep = questions.filter(q => !importedDiscs.includes(q.discipline));
+        merged = [...keep, ...valid];
+      } else {
+        // Merge and deduplicate by question text (normalize)
+        const normalize = s => s.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80);
+        const seen = new Map();
+        // existing first, then new (new overwrites old by text key)
+        [...questions, ...valid].forEach(q => {
+          seen.set(normalize(q.question), q);
+        });
+        merged = [...seen.values()];
+      }
+
+      // Final dedup by id just in case
+      const seenIds = new Set();
+      questions = merged.filter(q => { if (seenIds.has(q.id)) return false; seenIds.add(q.id); return true; });
+
+      saveQ(questions);
+      input.value = '';
+      render();
+      setTimeout(() => {
+        if (screen === 'manage') renderManageList();
+        const mode = choice ? 'Заменено по дисциплинам' : 'Добавлено/обновлено';
+        alert(`✓ ${mode}: ${valid.length} вопросов.\nВсего в базе: ${questions.length}`);
+      }, 100);
+    } catch(err) {
+      alert('Ошибка загрузки файла: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  const screens = { home:renderHome, manage:renderManage, settings:renderSettings, test:renderTest, results:renderResults, review:renderReview };
+  app.innerHTML = (screens[screen]||renderHome)();
+  if(screen==='manage') setTimeout(()=>renderManageList(),0);
+  if(screen==='test' && testSettings.timed) startTimerTick();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TELEGRAM MINI APP INIT
+// ═══════════════════════════════════════════════════════════════════
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Back button support
+  tg.BackButton.onClick(() => {
+    if (screen !== 'home') { go('home'); }
+    else { tg.BackButton.hide(); }
+  });
+}
+
+// Show/hide Telegram back button based on screen
+const origGo = go;
+function go(s) {
+  origGo(s);
+  if (tg) {
+    if (s !== 'home') tg.BackButton.show();
+    else tg.BackButton.hide();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
