@@ -1199,22 +1199,23 @@ if (tg) {
   applyTgTheme();
   tg.onEvent('themeChanged', applyTgTheme);
   
-  // Back button support
-  tg.BackButton.onClick(() => {
-    if (screen !== 'home') { go('home'); }
-    else { tg.BackButton.hide(); }
-  });
+  // Back button - show/hide based on screen
+  tg.BackButton.onClick(() => { go('home'); });
+  
+  // Patch go() to manage BackButton (no function override - use wrapper var)
+  const _goOrig = go;
+  window.go = function(s) {
+    _goOrig(s);
+    setTimeout(bindButtons, 50);
+    if (tg) {
+      if (s !== 'home') tg.BackButton.show();
+      else tg.BackButton.hide();
+    }
+  };
 }
 
 // Show/hide Telegram back button based on screen
-const origGo = go;
-function go(s) {
-  origGo(s);
-  if (tg) {
-    if (s !== 'home') tg.BackButton.show();
-    else tg.BackButton.hide();
-  }
-}
+// (BackButton handled inside TG init block below)
 
 // ── Reliable button binding for Telegram WebView ─────────────────
 const ACTION_MAP = {
@@ -1262,10 +1263,8 @@ function bindButtons() {
   });
 }
 
-const _origRender = render;
-function render() { _origRender(); setTimeout(bindButtons, 0); }
-
 render();
+setTimeout(bindButtons, 200);
 </script>
 </body>
 </html>
