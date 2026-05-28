@@ -15,9 +15,9 @@
     --primary:      var(--tg-theme-button-color,       #4F46E5);
     --primary-text: var(--tg-theme-button-text-color,  #ffffff);
     --link:         var(--tg-theme-link-color,         #4F46E5);
-    --primary-light: color-mix(in srgb, var(--primary) 12%, var(--bg));
-    --border:        color-mix(in srgb, var(--text) 15%, transparent);
-    --card-bg:       var(--tg-theme-secondary-bg-color, var(--surface));
+    --primary-light: #EEF2FF;
+    --border:        #E5E3FF;
+    --card-bg:       var(--tg-theme-secondary-bg-color, #ffffff);
   }
   * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
   body {
@@ -1185,8 +1185,15 @@ if (tg) {
     document.body.classList.toggle('tg-dark', isDark);
     // Override primary-light for dark mode
     if (isDark) {
-      document.documentElement.style.setProperty('--primary-light', 
-        'color-mix(in srgb, ' + (tg.themeParams.button_color||'#4F46E5') + ' 20%, #1a1a2e)');
+      document.documentElement.style.setProperty('--primary-light', '#1e1e3a');
+      document.documentElement.style.setProperty('--border', 'rgba(255,255,255,0.15)');
+      document.documentElement.style.setProperty('--card-bg', 
+        tg.themeParams.secondary_bg_color || '#1a1a2a');
+    } else {
+      document.documentElement.style.setProperty('--primary-light', '#EEF2FF');
+      document.documentElement.style.setProperty('--border', '#E5E3FF');
+      document.documentElement.style.setProperty('--card-bg', 
+        tg.themeParams.secondary_bg_color || '#ffffff');
     }
   }
   applyTgTheme();
