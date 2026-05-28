@@ -332,7 +332,7 @@ function renderHome() {
     <div class="disc-grid">
       ${DISCIPLINES.map(d=>{
         const cnt = byD[d.id];
-        return `<div class="disc-card" onclick="${cnt>0?`quickStart('${d.id}')`:''}"
+        return `<div class="disc-card" data-action="${cnt>0?`quickStart('${d.id}')`:''}" onclick="${cnt>0?`quickStart('${d.id}')`:''}"
           style="background:${d.color}18;border-left-color:${d.color};cursor:${cnt>0?'pointer':'default'};transition:transform .15s"
           onmouseover="if(${cnt>0}){this.style.transform='translateY(-2px)'}"
           onmouseout="this.style.transform=''">
@@ -350,11 +350,11 @@ function renderHome() {
           <p class="text-xs text-muted">Тренировка: все вопросы предмета · Экзамен: 40 вопр., 60 мин.</p>
         </div>
         <div class="flex gap-8">
-          <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Сохранить базу в файл">💾</button>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-db-home').click()" title="Загрузить базу из файла">📂</button>
+          <button class="btn btn-ghost btn-sm" data-action="exportDB()" onclick="exportDB()" title="Сохранить базу в файл">💾</button>
+          <button class="btn btn-ghost btn-sm" data-action="document.getElementById('import-db-home').click()" onclick="document.getElementById('import-db-home').click()" title="Загрузить базу из файла">📂</button>
           <input type="file" id="import-db-home" accept=".json" style="display:none" onchange="importDB(this)">
-          <button class="btn btn-secondary btn-sm" onclick="go('manage')">📋 Вопросы</button>
-          <button class="btn btn-primary" onclick="go('settings')" ${total<1?'disabled':''}>
+          <button class="btn btn-secondary btn-sm" data-action="go('manage')" onclick="go('manage')">📋 Вопросы</button>
+          <button class="btn btn-primary" data-action="go('settings')" data-action="go('settings')" onclick="go('settings')" ${total<1?'disabled':''}>
             ${total<1?'Нет вопросов':'Настроить тест ▶'}
           </button>
         </div>
@@ -367,14 +367,14 @@ function renderHome() {
         <p style="font-weight:700;font-size:14px;color:#92400E;margin:0 0 2px">★ Избранные вопросы</p>
         <p style="font-size:12px;color:#B45309;margin:0">${favorites.length} вопрос(ов) отмечено звёздочкой</p>
       </div>
-      <button class="btn btn-sm" style="background:#F59E0B;color:#fff;border:none" onclick="startFavorites()">Прорешать избранное ▶</button>
+      <button class="btn btn-sm" style="background:#F59E0B;color:#fff;border:none" data-action="startFavorites()" onclick="startFavorites()">Прорешать избранное ▶</button>
     </div>`:''}
 
     ${total===0?`
       <div style="text-align:center;padding:48px 0;color:var(--muted)">
         <p style="font-size:40px;margin-bottom:10px">📝</p>
         <p>Добавьте вопросы, чтобы начать тренировку</p>
-        <button class="btn btn-primary mt-16" onclick="go('manage')">Перейти к вопросам</button>
+        <button class="btn btn-primary mt-16" data-action="go('manage')" onclick="go('manage')">Перейти к вопросам</button>
       </div>`:''}
   `;
 }
@@ -388,24 +388,24 @@ function renderManage() {
   );
   return `
     <div class="flex items-center gap-8 mb-16 wrap">
-      <button class="btn btn-ghost btn-sm" onclick="go('home')">← Назад</button>
+      <button class="btn btn-ghost btn-sm" data-action="go('home')" onclick="go('home')">← Назад</button>
       <h2 style="flex:1">Вопросы (${questions.length})</h2>
-      <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Сохранить базу вопросов в файл">💾 Экспорт</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-db-file').click()" title="Загрузить базу вопросов из файла">📂 Загрузить</button>
+      <button class="btn btn-ghost btn-sm" data-action="exportDB()" onclick="exportDB()" title="Сохранить базу вопросов в файл">💾 Экспорт</button>
+      <button class="btn btn-ghost btn-sm" data-action="document.getElementById('import-db-file').click()" onclick="document.getElementById('import-db-file').click()" title="Загрузить базу вопросов из файла">📂 Загрузить</button>
       <input type="file" id="import-db-file" accept=".json" style="display:none" onchange="importDB(this)">
-      <button class="btn btn-secondary btn-sm" onclick="showImportModal()">⬆ Вопросы</button>
-      <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Добавить</button>
+      <button class="btn btn-secondary btn-sm" data-action="showImportModal()" onclick="showImportModal()">⬆ Вопросы</button>
+      <button class="btn btn-primary btn-sm" data-action="showAddModal()" onclick="showAddModal()">+ Добавить</button>
     </div>
 
     <div class="flex gap-8 mb-12 wrap">
-      <button class="chip ${manageFilter==='all'?'active':''}" style="${manageFilter==='all'?'background:#4F46E5':''}" onclick="setManageFilter('all')">Все</button>
+      <button class="chip ${manageFilter==='all'?'active':''}" style="${manageFilter==='all'?'background:#4F46E5':''}" data-action="setManageFilter('all')" onclick="setManageFilter('all')">Все</button>
       ${DISCIPLINES.map(d=>{
         const cnt = questions.filter(q=>q.discipline===d.id).length;
         return `<div style="display:inline-flex;align-items:center;gap:2px;margin-bottom:4px">
           <button class="chip ${manageFilter===d.id?'active':''}"
             style="${manageFilter===d.id?`background:${d.color}`:'color:'+d.color}"
-            onclick="setManageFilter('${d.id}')">${d.label.split(' ').slice(0,2).join(' ')} (${cnt})</button>
-          ${cnt>0?`<button onclick="deleteDisc('${d.id}')" title="Удалить все вопросы: ${d.label}"
+            data-action="setManageFilter('${d.id}')" onclick="setManageFilter('${d.id}')">${d.label.split(' ').slice(0,2).join(' ')} (${cnt})</button>
+          ${cnt>0?`<button data-action="deleteDisc('${d.id}')" onclick="deleteDisc('${d.id}')" title="Удалить все вопросы: ${d.label}"
             style="background:#FEE2E2;border:none;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;color:#DC2626;line-height:1">✕</button>`:''}
         </div>`;
       }).join('')}
@@ -439,9 +439,9 @@ function renderManageList() {
           <p class="text-xs text-muted">Ответ: ${q.answers.join(', ')} · ${q.options.length} вариантов${q.options.some(o=>o.text.startsWith('[img:'))?' · 🖼 есть картинки':''}</p>
         </div>
         <div class="flex-col gap-8" style="flex-shrink:0">
-          <button class="btn btn-secondary btn-sm" onclick="showEditModal('${q.id}')">✏️</button>
-          <button onclick="toggleFav('${q.id}');renderManageList()" style="background:${isFav(q.id)?'#FEF3C7':'#F3F4F6'};border:none;border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer">${isFav(q.id)?'★':'☆'}</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteQ('${q.id}')">🗑</button>
+          <button class="btn btn-secondary btn-sm" data-action="showEditModal('${q.id}')" onclick="showEditModal('${q.id}')">✏️</button>
+          <button data-action="toggleFav('${q.id}');renderManageList()" onclick="toggleFav('${q.id}');renderManageList()" style="background:${isFav(q.id)?'#FEF3C7':'#F3F4F6'};border:none;border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer">${isFav(q.id)?'★':'☆'}</button>
+          <button class="btn btn-danger btn-sm" data-action="deleteQ('${q.id}')" onclick="deleteQ('${q.id}')">🗑</button>
         </div>
       </div>`;
   }).join('');
@@ -466,7 +466,7 @@ function renderSettings() {
   if (settingsCount > maxCount || settingsCount < 1) settingsCount = maxCount;
   return `
     <div class="flex items-center gap-8 mb-16">
-      <button class="btn btn-ghost btn-sm" onclick="go('home')">← Назад</button>
+      <button class="btn btn-ghost btn-sm" data-action="go('home')" onclick="go('home')">← Назад</button>
       <h2>Настройки теста</h2>
     </div>
 
@@ -539,7 +539,7 @@ function renderSettings() {
       </label>
     </div>`:'<div class="mb-16"></div>'}
 
-    <button class="btn btn-primary btn-full" onclick="startTest()" ${(settingsMode==='exam' ? DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0) : (available||0)) < 1 ? 'disabled':''}>
+    <button class="btn btn-primary btn-full" data-action="startTest()" onclick="startTest()" ${(settingsMode==='exam' ? DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0) : (available||0)) < 1 ? 'disabled':''}>
       ${settingsMode==='exam'
         ? `🎓 Начать экзамен (${DISCIPLINES.reduce((s,d)=>s+Math.min(questions.filter(q=>q.discipline===d.id).length,EXAM_QUOTA[d.id]||0),0)} вопросов) ▶`
         : `📚 Начать (${Math.min(settingsCount,maxCount||0)} вопросов) ▶`}
@@ -594,8 +594,8 @@ function renderTest() {
       </div>
       <div class="flex gap-8 items-center">
         ${testSettings.timed?`<span id="timer" class="${timerClass}">⏱ ${mm}:${ss}</span>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="abortTest()">Прервать</button>
-        <button class="btn btn-primary btn-sm" onclick="finishTest()">Завершить ✓</button>
+        <button class="btn btn-ghost btn-sm" data-action="abortTest()" onclick="abortTest()">Прервать</button>
+        <button class="btn btn-primary btn-sm" data-action="finishTest()" onclick="finishTest()">Завершить ✓</button>
       </div>
     </div>
 
@@ -625,7 +625,7 @@ function renderTest() {
         const isImg = opt.text && opt.text.startsWith('[img:');
         const imgSrc = isImg ? opt.text.slice(5, -1) : null;
         return `<button class="opt-btn ${isSel?'selected':''} ${q.type==='multi'?'multi':''}"
-          onclick="toggleAnswer('${opt.letter}')">
+          data-action="toggleAnswer('${opt.letter}')" data-letter="${opt.letter}" onclick="toggleAnswer('${opt.letter}')">
           <span class="opt-letter">${opt.letter}</span>
           ${isImg
             ? `<img src="${imgSrc}" style="max-width:160px;max-height:120px;border-radius:8px;object-fit:contain">`
@@ -635,17 +635,17 @@ function renderTest() {
     </div>
 
     <div class="flex justify-between items-center mt-16">
-      <button class="btn btn-ghost" onclick="testIdx=Math.max(0,testIdx-1);rerenderOptions()" ${testIdx===0?'disabled':''}>← Назад</button>
-      <button class="btn btn-ghost btn-sm" onclick="toggleFlag()">
+      <button class="btn btn-ghost" data-action="testIdx=Math.max(0,testIdx-1);rerenderOptions()" onclick="testIdx=Math.max(0,testIdx-1);rerenderOptions()" ${testIdx===0?'disabled':''}>← Назад</button>
+      <button class="btn btn-ghost btn-sm" data-action="toggleFlag()" onclick="toggleFlag()">
         ${testFlagged.has(testIdx)?'🚩 Снять флаг':'🚩 Отметить'}
       </button>
-      <button onclick="toggleFav(testPool[testIdx].id);rerenderOptions()"
+      <button data-action="toggleFav(testPool[testIdx].id);rerenderOptions()" onclick="toggleFav(testPool[testIdx].id);rerenderOptions()"
         style="background:${isFav(testPool[testIdx].id)?'#FEF3C7':'#F3F4F6'};border:none;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;color:${isFav(testPool[testIdx].id)?'#92400E':'#6B7280'}">
         ${isFav(testPool[testIdx].id)?'★ Избранное':'☆ Избранное'}
       </button>
       ${testIdx<testPool.length-1
-        ?`<button class="btn btn-primary" onclick="testIdx++;rerenderOptions()">Далее →</button>`
-        :`<button class="btn btn-primary" onclick="finishTest()">Завершить ✓</button>`}
+        ?`<button class="btn btn-primary" data-action="testIdx++;rerenderOptions()" onclick="testIdx++;rerenderOptions()">Далее →</button>`
+        :`<button class="btn btn-primary" data-action="finishTest()" onclick="finishTest()">Завершить ✓</button>`}
     </div>
 
     <div class="card mt-16">
@@ -658,7 +658,7 @@ function renderTest() {
           let bg = isCur?'var(--primary)':isFl?'#FEE2E2':isAns?'#D1FAE5':'#E5E7EB';
           let cl = isCur?'#fff':isFl?'#DC2626':isAns?'#065F46':'var(--muted)';
           return `<button class="q-dot" style="background:${bg};color:${cl}"
-            onclick="testIdx=${i};rerenderOptions()">${i+1}</button>`;
+            data-action="testIdx=${i};rerenderOptions()" onclick="testIdx=${i};rerenderOptions()">${i+1}</button>`;
         }).join('')}
       </div>
     </div>
@@ -722,8 +722,8 @@ function renderResults() {
     </div>
 
     <div class="flex gap-8">
-      <button class="btn btn-secondary" style="flex:1" onclick="go('review')">Разбор ошибок</button>
-      <button class="btn btn-primary" style="flex:1" onclick="go('home')">На главную</button>
+      <button class="btn btn-secondary" style="flex:1" data-action="go('review')" onclick="go('review')">Разбор ошибок</button>
+      <button class="btn btn-primary" style="flex:1" data-action="go('home')" onclick="go('home')">На главную</button>
     </div>
   `;
 }
@@ -739,7 +739,7 @@ function renderReview() {
 
   return `
     <div class="flex items-center gap-8 mb-16 wrap">
-      <button class="btn btn-ghost btn-sm" onclick="go('results')">← Назад</button>
+      <button class="btn btn-ghost btn-sm" data-action="go('results')" onclick="go('results')">← Назад</button>
       <h2 style="flex:1">Разбор ответов</h2>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
         <input type="checkbox" ${reviewOnlyWrong?'checked':''} onchange="reviewOnlyWrong=this.checked;render()">
@@ -850,7 +850,7 @@ function showImportModal() {
       <div class="modal">
         <div class="modal-header">
           <h2>Импорт вопросов</h2>
-          <button class="modal-close" onclick="closeModal('import-modal')">✕</button>
+          <button class="modal-close" data-action="closeModal('import-modal')" onclick="closeModal('import-modal')">✕</button>
         </div>
         <div class="hint">
           <b>Формат — блоки, разделённые пустой строкой:</b><br>
@@ -874,10 +874,10 @@ function showImportModal() {
         </div>
         <div id="import-preview"></div>
         <div class="flex gap-8 justify-between mt-16">
-          <button class="btn btn-ghost" onclick="closeModal('import-modal')">Отмена</button>
+          <button class="btn btn-ghost" data-action="closeModal('import-modal')" onclick="closeModal('import-modal')">Отмена</button>
           <div class="flex gap-8">
-            <button class="btn btn-secondary" onclick="previewImport()">👁 Предпросмотр</button>
-            <button class="btn btn-primary" id="import-save-btn" disabled onclick="saveImport()">Добавить</button>
+            <button class="btn btn-secondary" data-action="previewImport()" onclick="previewImport()">👁 Предпросмотр</button>
+            <button class="btn btn-primary" id="import-save-btn" disabled data-action="saveImport()" onclick="saveImport()">Добавить</button>
           </div>
         </div>
       </div>
@@ -922,7 +922,7 @@ function openEditModal(q) {
       <div class="modal">
         <div class="modal-header">
           <h2>${editingId?'Редактировать':'Добавить'} вопрос</h2>
-          <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+          <button class="modal-close" data-action="closeModal('add-modal')" onclick="closeModal('add-modal')">✕</button>
         </div>
         <div class="field">
           <label>Дисциплина</label>
@@ -957,7 +957,7 @@ function openEditModal(q) {
               const letter=['A','B','C','D','E','F','G','H','I'][i];
               const isSel = q.answers.includes(letter);
               return `<div class="flex items-center gap-8 mb-8">
-                <button id="add-letter-${letter}" onclick="toggleAddAnswer('${letter}')"
+                <button id="add-letter-${letter}" data-action="toggleAddAnswer('${letter}')" onclick="toggleAddAnswer('${letter}')"
                   style="width:32px;height:32px;border-radius:${q.type==='multi'?'8px':'50%'};border:2px solid ${isSel?'var(--primary)':'#D1D5DB'};background:${isSel?'var(--primary)':'transparent'};color:${isSel?'#fff':'var(--muted)'};font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0;transition:all .15s">
                   ${letter}
                 </button>
@@ -971,8 +971,8 @@ function openEditModal(q) {
           </div>
         </div>
         <div class="flex gap-8 justify-between mt-16">
-          <button class="btn btn-ghost" onclick="closeModal('add-modal')">Отмена</button>
-          <button class="btn btn-primary" onclick="saveQuestion()">Сохранить</button>
+          <button class="btn btn-ghost" data-action="closeModal('add-modal')" onclick="closeModal('add-modal')">Отмена</button>
+          <button class="btn btn-primary" data-action="saveQuestion()" onclick="saveQuestion()">Сохранить</button>
         </div>
       </div>
     </div>
@@ -1206,6 +1206,41 @@ function go(s) {
     else tg.BackButton.hide();
   }
 }
+
+// ── Event Delegation for mobile WebView compatibility ────────────
+// Telegram WebView sometimes blocks inline onclick in innerHTML
+// This catches ALL taps and routes them via data-action
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  if (!action) return;
+  e.preventDefault();
+  e.stopPropagation();
+  try {
+    // For answer buttons, use data-letter for reliability
+    if (action.includes('toggleAnswer') && btn.dataset.letter) {
+      toggleAnswer(btn.dataset.letter);
+    } else {
+      eval(action);
+    }
+  } catch(err) { console.warn('action error:', action, err); }
+}, true);
+
+document.addEventListener('touchend', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  if (!action) return;
+  e.preventDefault();
+  try {
+    if (action.includes('toggleAnswer') && btn.dataset.letter) {
+      toggleAnswer(btn.dataset.letter);
+    } else {
+      eval(action);
+    }
+  } catch(err) {}
+}, { passive: false, capture: true });
 
 render();
 </script>
