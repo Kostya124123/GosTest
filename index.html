@@ -445,6 +445,7 @@ function renderManageList() {
         </div>
       </div>`;
   }).join('');
+  setTimeout(bindButtons, 0);
 }
 function setManageFilter(f) { manageFilter=f; render(); setTimeout(()=>renderManageList(),0); }
 function deleteDisc(discId) {
@@ -669,6 +670,7 @@ function rerenderOptions() {
   if (!el) return;
   el.innerHTML = renderTest();
   startTimerTick();
+  setTimeout(bindButtons, 0);
 }
 function toggleAnswer(letter) {
   const q = testPool[testIdx];
@@ -1207,40 +1209,54 @@ function go(s) {
   }
 }
 
-// ── Event Delegation for mobile WebView compatibility ────────────
-// Telegram WebView sometimes blocks inline onclick in innerHTML
-// This catches ALL taps and routes them via data-action
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const action = btn.getAttribute('data-action');
-  if (!action) return;
-  e.preventDefault();
-  e.stopPropagation();
-  try {
-    // For answer buttons, use data-letter for reliability
-    if (action.includes('toggleAnswer') && btn.dataset.letter) {
-      toggleAnswer(btn.dataset.letter);
-    } else {
-      eval(action);
-    }
-  } catch(err) { console.warn('action error:', action, err); }
-}, true);
+// ── Reliable button binding for Telegram WebView ─────────────────
+const ACTION_MAP = {
+  'home':() => go('home'), 'settings':() => go('settings'),
+  'manage':() => go('manage'), 'results':() => go('results'),
+  'review':() => go('review'),
+  'startTest':() => startTest(), 'abortTest':() => abortTest(),
+  'finishTest':() => finishTest(), 'exportDB':() => exportDB(),
+  'showImportModal':() => showImportModal(), 'showAddModal':() => showAddModal(),
+  'saveImport':() => saveImport(), 'previewImport':() => previewImport(),
+  'saveQuestion':() => saveQuestion(), 'startFavorites':() => startFavorites(),
+  'toggleFlag':() => { toggleFlag(); rerenderOptions(); },
+};
 
-document.addEventListener('touchend', function(e) {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const action = btn.getAttribute('data-action');
-  if (!action) return;
-  e.preventDefault();
-  try {
-    if (action.includes('toggleAnswer') && btn.dataset.letter) {
-      toggleAnswer(btn.dataset.letter);
-    } else {
-      eval(action);
-    }
-  } catch(err) {}
-}, { passive: false, capture: true });
+function handleAction(raw, el) {
+  if (ACTION_MAP[raw]) { ACTION_MAP[raw](); return; }
+  let m;
+  m = raw.match(/^go\('(\w+)'\)$/); if(m){go(m[1]);return;}
+  m = raw.match(/^quickStart\('(\w+)'\)$/); if(m){quickStart(m[1]);return;}
+  m = raw.match(/^toggleAnswer\('([A-I])'\)$/); if(m){toggleAnswer(m[1]);rerenderOptions();return;}
+  m = raw.match(/^testIdx=(\d+);rerenderOptions/); if(m){testIdx=+m[1];rerenderOptions();return;}
+  if(raw==='testIdx++;rerenderOptions()'){testIdx++;rerenderOptions();return;}
+  if(raw.includes('Math.max(0,testIdx-1)')){testIdx=Math.max(0,testIdx-1);rerenderOptions();return;}
+  m = raw.match(/^setManageFilter\('(\w+)'\)$/); if(m){setManageFilter(m[1]);return;}
+  m = raw.match(/^settingsMode='(\w+)';render/); if(m){settingsMode=m[1];render();return;}
+  m = raw.match(/^toggleSettingsDisc\('(\w+)'\)$/); if(m){toggleSettingsDisc(m[1]);return;}
+  m = raw.match(/^deleteQ\('([^']+)'\)$/); if(m){deleteQ(m[1]);return;}
+  m = raw.match(/^showEditModal\('([^']+)'\)$/); if(m){showEditModal(m[1]);return;}
+  m = raw.match(/^closeModal\('([^']+)'\)$/); if(m){closeModal(m[1]);return;}
+  m = raw.match(/^toggleFav\('([^']+)'\)/); if(m){toggleFav(m[1]);renderManageList&&renderManageList();return;}
+  if(raw.includes('toggleFav(testPool')){toggleFav(testPool[testIdx].id);rerenderOptions();return;}
+  if(raw.includes('deleteDisc')){m=raw.match(/deleteDisc\('(\w+)'\)/);if(m)deleteDisc(m[1]);return;}
+  if(raw.includes('reviewOnlyWrong')){reviewOnlyWrong=!reviewOnlyWrong;render();return;}
+  m = raw.match(/^deleteDisc\('(\w+)'\)$/); if(m){deleteDisc(m[1]);return;}
+  console.warn('Unhandled:', raw);
+}
+
+function bindButtons() {
+  document.querySelectorAll('[data-action]').forEach(el => {
+    const raw = el.getAttribute('data-action');
+    if (!raw || el._bound) return;
+    el._bound = true;
+    const handler = (e) => { e.preventDefault(); e.stopPropagation(); handleAction(raw, el); };
+    el.addEventListener('pointerup', handler);
+  });
+}
+
+const _origRender = render;
+function render() { _origRender(); setTimeout(bindButtons, 0); }
 
 render();
 </script>
